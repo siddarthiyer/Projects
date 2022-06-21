@@ -1,4 +1,4 @@
-module  color_mapper ( input clk, input blank, Reset_h, Run_h, input [9:0] DrawX, DrawY, input [7:0] keycode,
+module  Rubiks_Cube ( input clk, input blank, Reset_h, Run_h, input [9:0] DrawX, DrawY, input [7:0] keycode,
                        output pixel_clk,
 							 output [3:0]  Red, Green, Blue );
 	logic started_;
