@@ -1,0 +1,3 @@
+../UART/UART.c:38:6:UART_Setup	24	static
+../UART/UART.c:131:9:UART_Get_Data	16	static
+../UART/UART.c:147:5:UART_Send_Data	16	static

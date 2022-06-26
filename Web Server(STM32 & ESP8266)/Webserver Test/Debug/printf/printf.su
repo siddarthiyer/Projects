@@ -1,0 +1,2 @@
+../printf/printf.c:10:6:serialPrint	816	static
+../printf/printf.c:23:6:serialPrintInit	16	static
