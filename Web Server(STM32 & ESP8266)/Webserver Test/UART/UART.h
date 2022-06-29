@@ -1,113 +1,77 @@
-#ifndef _USART_H_
-#define _USART_H_
 
 
-#include <stdbool.h>
-#include "main.h"
+#ifndef UARTRINGBUFFER_H_
+#define UARTRINGBUFFER_H_
 
 
-/***********************************************************************************************************************/
-//                                                         UART
-/***********************************************************************************************************************/
+#include "stm32F1xx_hal.h"
 
-/**********************************************************************************************************************
- * @brief: This function sets up basic functions of UART (without clock)
- * @parameters:
- *              USART        ->       USART1
- *                                    USART2
- *                                    USART3
- *              baudrate     ->       2400
- *                                    9600
- *                                    19200
- *                                    57600
- *                                    115200
- *                                    230400
- *                                    460800
- *                                    921600
- *                                    2250000
- *                                    450000
- *              frame_length ->   0:  1 Start bit, 8 Data bits, n Stop bit
- *                                1:  1 Start bit, 9 Data bits, n Stop bit
- *              stop_bits    ->   0:  1 Stop bit
- *                                1:  0.5 Stop bit
- *                                2:  2 Stop bits
- *                                3:  1.5 Stop bit
- *              DMA_TX       ->   0:  DMA mode is enabled for transmission
- *                                1:  DMA mode is disabled for transmission
- *              DMA_RX       ->   0:  DMA mode is enabled for reception
- *                                1:  DMA mode is disabled for reception
- **********************************************************************************************************************/
+/* change the size of the buffer */
+#define UART_BUFFER_SIZE 64
 
-void UART_Setup(USART_TypeDef *USART,int baudrate, uint8_t frame_length, uint8_t stop_bits);
+typedef struct
+{
+  unsigned char buffer[UART_BUFFER_SIZE];
+  volatile unsigned int head;
+  volatile unsigned int tail;
+} ring_buffer;
 
 
+/* reads the data in the rx_buffer and increment the tail count in rx_buffer of the given UART */
+int Uart_read(UART_HandleTypeDef *uart);
+
+/* writes the data to the tx_buffer and increment the head count in tx_buffer */
+void Uart_write(int c, UART_HandleTypeDef *uart);
+
+/* function to send the string to the uart */
+void Uart_sendstring(const char *s, UART_HandleTypeDef *uart);
+
+/* Print a number with any base
+ * base can be 10, 8 etc*/
+
+/* Initialize the ring buffer */
+void Ringbuf_init(void);
 
 
+/* checks if the data is available to read in the rx_buffer of the uart */
+int IsDataAvailable(UART_HandleTypeDef *uart);
 
+/* Look for a particular string in the given buffer
+ * @return 1, if the string is found and -1 if not found
+ * @USAGE:: if (Look_for ("some string", buffer)) do something
+ */
+int Look_for (char *str, char *buffertolookinto);
 
-/***********************************************************************************************************************
- * @brief: This function receives incoming data
- * @parameter: uart  -> USART1
- *                      USART2
- *                      USART3
- *@return: UART 8 bit data
- ***********************************************************************************************************************/
-
-uint8_t UART_Get_Data(USART_TypeDef *uart);
+/* Peek for the data in the Rx Bffer without incrementing the tail count
+* Returns the character
+* USAGE: if (Uart_peek () == 'M') do something
+*/
+int Uart_peek(UART_HandleTypeDef *uart);
 
 
 
-/***********************************************************************************************************************
- * @brief: This function sends out data
- * @parameter: uart  -> USART1
- *                      USART2
- *                      USART3
- *             data  -> 8 bit data
- ***********************************************************************************************************************/
+/* Copies the entered number of characters (blocking mode) from the Rx buffer into the buffer, after some particular string is detected
+* Returns 1 on success and -1 otherwise
+* USAGE: while (!(Get_after ("some string", 6, buffer, uart)));
+*/
+int Get_after (char *string, uint8_t numberofchars, char *buffertosave, UART_HandleTypeDef *uart);
 
-int UART_Send_Data(USART_TypeDef *uart,uint8_t data);
+/* Wait until a paricular string is detected in the Rx Buffer
+* Return 1 on success and -1 otherwise
+* USAGE: while (!(Wait_for("some string", uart)));
+*/
+int Wait_for (char *string, UART_HandleTypeDef *uart);
 
+/* the ISR for the uart. put it in the IRQ handler */
+void Uart_isr (UART_HandleTypeDef *huart);
 
-/***********************************************************************************************************************/
-//                                                         USART
-/***********************************************************************************************************************/
-
-/**********************************************************************************************************************
- * @brief: This function sets up basic functions of USART1 (with clock)
- * @parameters:
- *              USART        ->       USART1
- *                                    USART2
- *                                    USART3
- *              baudrate     ->       2400
- *                                    9600
- *                                    19200
- *                                    57600
- *                                    115200
- *                                    230400
- *                                    460800
- *                                    921600
- *                                    2250000
- *                                    450000
- *              frame_length ->   0:  1 Start bit, 8 Data bits, n Stop bit
- *                                1:  1 Start bit, 9 Data bits, n Stop bit
- *              stop_bits    ->   0:  1 Stop bit
- *                                1:  0.5 Stop bit
- *                                2:  2 Stop bits
- *                                3:  1.5 Stop bit
- *              CPOL              0:  Steady low value on CK pin outside transmission window
- *                                1:  Steady high value on CK pin outside transmission window
- *              CPHA              0:  The first clock transition is the first data capture edge
- *                                1:  The second clock transition is the first data capture edge
- *              DMA_TX       ->   0:  DMA mode is enabled for transmission
- *                                1:  DMA mode is disabled for transmission
- *              DMA_RX       ->   0:  DMA mode is enabled for reception
- *                                1:  DMA mode is disabled for reception
- **********************************************************************************************************************/
+/*** Depreciated For now. This is not needed, try using other functions to meet the requirement ***/
+/* get the position of the given string within the incoming data.
+ * It returns the position, where the string ends
+ */
+/* get the position of the given string in the given UART's incoming data.
+ * It returns the position, where the string ends */
+//int16_t Get_position (char *string, UART_HandleTypeDef *uart);
 
 
-
-
-
-
-
-#endif
+#endif /* UARTRINGBUFFER_H_ */
